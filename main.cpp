@@ -1,45 +1,56 @@
 #include <iostream>
+#include <queue>
+#include <vector>
+
+using namespace std;
 
 class Solution {
 public:
-    bool isBipartite(int graph[][100], int n) {
-        int colors[100];
-        for (int i = 0; i < n; i++) {
-            colors[i] = 0;
-        }
+    bool isBipartite(vector<vector<int>>& graph) {
+        int n = graph.size();
+        vector<int> setA, setB;
+        vector<bool> visited(n, false);
+        queue<int> q;
 
-        int queue[100];
         for (int start = 0; start < n; start++) {
-            if (colors[start] == 0) {
-                colors[start] = 1;
-                int front = 0, rear = 0;
-                queue[rear++] = start;
+            if (!visited[start]) {
+                q.push(start);
+                setA.push_back(start); // Inicialmente, colocamos el nodo de inicio en el conjunto A
 
-                while (front != rear) {
-                    int u = queue[front++];
-                    for (int i = 0; graph[u][i] != -1; i++) {
-                        int v = graph[u][i];
-                        if (colors[v] == 0) {
-                            colors[v] = -colors[u];
-                            queue[rear++] = v;
-                        } else if (colors[v] == colors[u]) {
-                            return false;
+                while (!q.empty()) {
+                    int current = q.front(); q.pop();
+
+                    // Determinar en qué conjunto está el nodo actual
+                    bool inSetA = find(setA.begin(), setA.end(), current) != setA.end();
+
+                    for (int adj : graph[current]) {
+                        if (!visited[adj]) {
+                            visited[adj] = true;
+                            q.push(adj);
+                            // Agregar el nodo adjacente al conjunto opuesto
+                            if (inSetA) {
+                                setB.push_back(adj);
+                            } else {
+                                setA.push_back(adj);
+                            }
+                        } else {
+                            // Verificar si el nodo adyacente está en el mismo conjunto
+                            if ((inSetA && find(setA.begin(), setA.end(), adj) != setA.end()) ||
+                                (!inSetA && find(setB.begin(), setB.end(), adj) != setB.end())) {
+                                return false; // No es bipartito
+                            }
                         }
                     }
                 }
             }
         }
-        return true;
+        return true; // Es bipartito
     }
 };
 
 int main() {
     Solution solution;
-    int graph1[4][100] = {{1,2,3,-1},{0,2,-1},{0,1,3,-1},{0,2,-1}};
-    int graph2[4][100] = {{1,3,-1},{0,2,-1},{1,3,-1},{0,2,-1}};
+    vector<vector<int>> graph1 = {{1, 2, 3}, {0, 2}, {0, 1, 3}, {0, 2}};
+    vector<vector<int>> graph2 = {{1, 3}, {0, 2}, {1, 3}, {0, 2}};
 
-    std::cout << "Graph 1 is bipartite: " << solution.isBipartite(graph1, 4) << std::endl;
-    std::cout << "Graph 2 is bipartite: " << solution.isBipartite(graph2, 4) << std::endl;
-    
-    return 0;
-}
+    cout << "Graph 
